@@ -877,6 +877,23 @@ textarea::placeholder { color: var(--muted); }
   transform: translateY(-1px);
 }
 
+/* Footer */
+.footer {
+  margin-top: clamp(24px, 6vw, 40px);
+  padding: clamp(16px, 4vw, 24px) 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.footer-content p {
+  font-size: clamp(0.7rem, 2vw, 0.85rem);
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  font-family: 'DM Mono', monospace;
+}
+
 /* Print styles */
 @media print {
   body::before {

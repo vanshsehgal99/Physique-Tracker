@@ -170,6 +170,7 @@ export default function App() {
         onRemoveCustom={removeCustomExercise}
       />
       <Heatmap state={state} plan={planWithCustom} />
+      <Footer />
       {toast && <Toast message={toast} />}
       {showAddForm && (
         <AddExerciseForm
@@ -178,6 +179,16 @@ export default function App() {
         />
       )}
     </div>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer-content">
+        <p>made by vansh sehgal</p>
+      </div>
+    </footer>
   )
 }
 
