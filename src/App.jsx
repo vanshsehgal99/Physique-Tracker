@@ -1,0 +1,195 @@
+import React, { useState, useEffect, useCallback } from 'react'
+import './App.css'
+import Header from './components/Header'
+import Stats from './components/Stats'
+import ProgressSection from './components/ProgressSection'
+import WeekNav from './components/WeekNav'
+import DayCards from './components/DayCards'
+import Heatmap from './components/Heatmap'
+import Toast from './components/Toast'
+
+const PLAN = [
+  {
+    name: "Shoulders + Traps",
+    type: "workout",
+    exercises: [
+      { name: "Lateral Raises", sets: "4×15" },
+      { name: "Cable Lateral Raises", sets: "3×15" },
+      { name: "Cable Shrugs", sets: "4×12" },
+      { name: "Overhead Press", sets: "3×10" },
+    ]
+  },
+  {
+    name: "Back — Lat Focus",
+    type: "workout",
+    exercises: [
+      { name: "Lat Pulldowns", sets: "4×10" },
+      { name: "Pull-ups / Assisted", sets: "3×8" },
+      { name: "Seated Cable Row", sets: "3×12" },
+      { name: "Straight-arm Pulldown", sets: "3×15" },
+    ]
+  },
+  {
+    name: "Rest / Light Cardio",
+    type: "rest",
+    exercises: [
+      { name: "20-min walk or stretching", sets: "1×20min" },
+    ]
+  },
+  {
+    name: "Chest + Arms",
+    type: "workout",
+    exercises: [
+      { name: "Incline Dumbbell Press", sets: "4×10" },
+      { name: "Cable Fly (upper angle)", sets: "3×15" },
+      { name: "Dumbbell Curl", sets: "3×12" },
+      { name: "Tricep Pushdown", sets: "3×12" },
+      { name: "Rear Delt Fly", sets: "3×15" },
+    ]
+  },
+  {
+    name: "Shoulders — Volume",
+    type: "workout",
+    exercises: [
+      { name: "Lateral Raises (dropset)", sets: "4×20→12" },
+      { name: "Cable Lateral Raises", sets: "4×15" },
+      { name: "Face Pulls", sets: "3×20" },
+      { name: "Traps Shrug", sets: "3×15" },
+    ]
+  }
+]
+
+function getWeekKey(offset = 0) {
+  const now = new Date()
+  const day = now.getDay()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + offset * 7)
+  return monday.toISOString().slice(0, 10)
+}
+
+function getDayKey(weekKey, dayIdx) {
+  const d = new Date(weekKey)
+  d.setDate(d.getDate() + dayIdx)
+  return d.toISOString().slice(0, 10)
+}
+
+function getStreak(state) {
+  let streak = 0
+  const today = new Date()
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - i)
+    const key = d.toISOString().slice(0, 10)
+    if (state[key] && state[key].done) streak++
+    else if (i > 0) break
+  }
+  return streak
+}
+
+export default function App() {
+  const [state, setState] = useState(() => {
+    const saved = localStorage.getItem('physique_tracker')
+    return saved ? JSON.parse(saved) : {}
+  })
+  const [weekOffset, setWeekOffset] = useState(0)
+  const [toast, setToast] = useState('')
+
+  useEffect(() => {
+    localStorage.setItem('physique_tracker', JSON.stringify(state))
+  }, [state])
+
+  const showToast = useCallback((msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2200)
+  }, [])
+
+  const toggleDay = useCallback((dayKey, type) => {
+    setState(prev => {
+      const updated = { ...prev }
+      if (!updated[dayKey]) updated[dayKey] = { done: false, exercises: {}, notes: '' }
+      updated[dayKey].done = !updated[dayKey].done
+      
+      if (updated[dayKey].done) {
+        showToast(type === 'rest' ? '😴 Rest day logged!' : '💪 Workout done!')
+      }
+      
+      return updated
+    })
+  }, [showToast])
+
+  const toggleExercise = useCallback((dayKey, exIdx) => {
+    setState(prev => {
+      const updated = { ...prev }
+      if (!updated[dayKey]) updated[dayKey] = { done: false, exercises: {}, notes: '' }
+      if (!updated[dayKey].exercises) updated[dayKey].exercises = {}
+      updated[dayKey].exercises[exIdx] = !updated[dayKey].exercises[exIdx]
+      return updated
+    })
+  }, [])
+
+  const saveNotes = useCallback((dayKey, notes) => {
+    setState(prev => {
+      const updated = { ...prev }
+      if (!updated[dayKey]) updated[dayKey] = { done: false, exercises: {}, notes: '' }
+      updated[dayKey].notes = notes
+      return updated
+    })
+  }, [])
+
+  const changeWeek = useCallback((dir) => {
+    setWeekOffset(prev => prev + dir)
+  }, [])
+
+  const weekKey = getWeekKey(weekOffset)
+  const todayKey = new Date().toISOString().slice(0, 10)
+
+  const stats = {
+    totalWorkouts: Object.values(state).filter(d => d.done).length,
+    thisWeekDone: Array.from({ length: 5 }, (_, i) => {
+      const dk = getDayKey(weekKey, i)
+      return state[dk] && state[dk].done ? 1 : 0
+    }).reduce((a, b) => a + b, 0),
+    completionRate: Object.keys(state).length > 0
+      ? Math.round(Object.values(state).filter(d => d.done).length / Object.keys(state).length * 100)
+      : 0,
+    streak: getStreak(state)
+  }
+
+  const progressDays = Array.from({ length: 5 }, (_, i) => {
+    const dk = getDayKey(weekKey, i)
+    return state[dk] && state[dk].done ? 1 : 0
+  }).reduce((a, b) => a + b, 0)
+
+  return (
+    <div className="wrap">
+      <Header streak={stats.streak} />
+      <DateDisplay />
+      <Stats {...stats} />
+      <ProgressSection progressDays={progressDays} />
+      <WeekNav weekOffset={weekOffset} changeWeek={changeWeek} />
+      <DayCards
+        plan={PLAN}
+        weekKey={weekKey}
+        state={state}
+        todayKey={todayKey}
+        toggleDay={toggleDay}
+        toggleExercise={toggleExercise}
+        saveNotes={saveNotes}
+      />
+      <Heatmap state={state} plan={PLAN} />
+      {toast && <Toast message={toast} />}
+    </div>
+  )
+}
+
+function DateDisplay() {
+  const today = new Date()
+  const dateStr = today.toLocaleDateString('en-IN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+
+  return <div className="date-display">{dateStr}</div>
+}
