@@ -8,7 +8,8 @@ export default function DayCard({
   isToday,
   toggleDay,
   toggleExercise,
-  saveNotes
+  saveNotes,
+  onRemoveCustom
 }) {
   const [isOpen, setIsOpen] = useState(isToday)
 
@@ -63,6 +64,18 @@ export default function DayCard({
               </div>
               <span className="ex-name">{ex.name}</span>
               <span className="ex-sets">{ex.sets}</span>
+              {ex._customIndex !== undefined && (
+                <button
+                  className="remove-ex-btn"
+                  onClick={(e) => {
+                    onRemoveCustom(ex._customIndex)
+                    e.stopPropagation()
+                  }}
+                  title="Remove custom exercise"
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
 

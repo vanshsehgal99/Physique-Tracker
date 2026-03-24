@@ -7,6 +7,7 @@ import WeekNav from './components/WeekNav'
 import DayCards from './components/DayCards'
 import Heatmap from './components/Heatmap'
 import Toast from './components/Toast'
+import AddExerciseForm from './components/AddExerciseForm'
 
 const PLAN = [
   {
@@ -91,12 +92,21 @@ export default function App() {
     const saved = localStorage.getItem('physique_tracker')
     return saved ? JSON.parse(saved) : {}
   })
+  const [customExercises, setCustomExercises] = useState(() => {
+    const saved = localStorage.getItem('physique_tracker_custom')
+    return saved ? JSON.parse(saved) : []
+  })
   const [weekOffset, setWeekOffset] = useState(0)
   const [toast, setToast] = useState('')
+  const [showAddForm, setShowAddForm] = useState(false)
 
   useEffect(() => {
     localStorage.setItem('physique_tracker', JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    localStorage.setItem('physique_tracker_custom', JSON.stringify(customExercises))
+  }, [customExercises])
 
   const showToast = useCallback((msg) => {
     setToast(msg)
@@ -140,6 +150,29 @@ export default function App() {
     setWeekOffset(prev => prev + dir)
   }, [])
 
+  const addCustomExercise = useCallback((exercise) => {
+    setCustomExercises(prev => [...prev, exercise])
+    showToast('✅ Custom exercise added!')
+  }, [showToast])
+
+  const removeCustomExercise = useCallback((index) => {
+    setCustomExercises(prev => prev.filter((_, i) => i !== index))
+    showToast('🗑️ Exercise removed')
+  }, [showToast])
+
+  // Merge custom exercises with the plan
+  const planWithCustom = [
+    ...PLAN,
+    ...(customExercises.length > 0 ? [{
+      name: "My Custom Exercises",
+      type: "custom",
+      exercises: customExercises.map((ex, idx) => ({ 
+        ...ex, 
+        _customIndex: idx 
+      }))
+    }] : [])
+  ]
+
   const weekKey = getWeekKey(weekOffset)
   const todayKey = new Date().toISOString().slice(0, 10)
 
@@ -167,17 +200,32 @@ export default function App() {
       <Stats {...stats} />
       <ProgressSection progressDays={progressDays} />
       <WeekNav weekOffset={weekOffset} changeWeek={changeWeek} />
+      
+      <div className="add-exercise-container">
+        <button className="btn-add-exercise" onClick={() => setShowAddForm(true)}>
+          <span>+</span>
+          Add Custom Exercise
+        </button>
+      </div>
+
       <DayCards
-        plan={PLAN}
+        plan={planWithCustom}
         weekKey={weekKey}
         state={state}
         todayKey={todayKey}
         toggleDay={toggleDay}
         toggleExercise={toggleExercise}
         saveNotes={saveNotes}
+        onRemoveCustom={removeCustomExercise}
       />
-      <Heatmap state={state} plan={PLAN} />
+      <Heatmap state={state} plan={planWithCustom} />
       {toast && <Toast message={toast} />}
+      {showAddForm && (
+        <AddExerciseForm
+          onAddExercise={addCustomExercise}
+          onClose={() => setShowAddForm(false)}
+        />
+      )}
     </div>
   )
 }

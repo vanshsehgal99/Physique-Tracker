@@ -14,7 +14,8 @@ export default function DayCards({
   todayKey,
   toggleDay,
   toggleExercise,
-  saveNotes
+  saveNotes,
+  onRemoveCustom
 }) {
   return (
     <div className="days-grid">
@@ -34,6 +35,7 @@ export default function DayCards({
             toggleDay={toggleDay}
             toggleExercise={toggleExercise}
             saveNotes={saveNotes}
+            onRemoveCustom={onRemoveCustom}
           />
         )
       })}
