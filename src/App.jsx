@@ -183,10 +183,13 @@ export default function App() {
 }
 
 function Footer() {
+  const currentYear = new Date().getFullYear()
+  
   return (
     <footer className="footer">
       <div className="footer-content">
         <p>made by vansh sehgal</p>
+        <p>© {currentYear} all rights reserved</p>
       </div>
     </footer>
   )
