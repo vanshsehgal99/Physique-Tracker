@@ -9,56 +9,7 @@ import Heatmap from './components/Heatmap'
 import Toast from './components/Toast'
 import AddExerciseForm from './components/AddExerciseForm'
 
-const PLAN = [
-  {
-    name: "Shoulders + Traps",
-    type: "workout",
-    exercises: [
-      { name: "Lateral Raises", sets: "4×15" },
-      { name: "Cable Lateral Raises", sets: "3×15" },
-      { name: "Cable Shrugs", sets: "4×12" },
-      { name: "Overhead Press", sets: "3×10" },
-    ]
-  },
-  {
-    name: "Back — Lat Focus",
-    type: "workout",
-    exercises: [
-      { name: "Lat Pulldowns", sets: "4×10" },
-      { name: "Pull-ups / Assisted", sets: "3×8" },
-      { name: "Seated Cable Row", sets: "3×12" },
-      { name: "Straight-arm Pulldown", sets: "3×15" },
-    ]
-  },
-  {
-    name: "Rest / Light Cardio",
-    type: "rest",
-    exercises: [
-      { name: "20-min walk or stretching", sets: "1×20min" },
-    ]
-  },
-  {
-    name: "Chest + Arms",
-    type: "workout",
-    exercises: [
-      { name: "Incline Dumbbell Press", sets: "4×10" },
-      { name: "Cable Fly (upper angle)", sets: "3×15" },
-      { name: "Dumbbell Curl", sets: "3×12" },
-      { name: "Tricep Pushdown", sets: "3×12" },
-      { name: "Rear Delt Fly", sets: "3×15" },
-    ]
-  },
-  {
-    name: "Shoulders — Volume",
-    type: "workout",
-    exercises: [
-      { name: "Lateral Raises (dropset)", sets: "4×20→12" },
-      { name: "Cable Lateral Raises", sets: "4×15" },
-      { name: "Face Pulls", sets: "3×20" },
-      { name: "Traps Shrug", sets: "3×15" },
-    ]
-  }
-]
+const PLAN = []
 
 function getWeekKey(offset = 0) {
   const now = new Date()
@@ -178,7 +129,7 @@ export default function App() {
 
   const stats = {
     totalWorkouts: Object.values(state).filter(d => d.done).length,
-    thisWeekDone: Array.from({ length: 5 }, (_, i) => {
+    thisWeekDone: Array.from({ length: planWithCustom.length }, (_, i) => {
       const dk = getDayKey(weekKey, i)
       return state[dk] && state[dk].done ? 1 : 0
     }).reduce((a, b) => a + b, 0),
@@ -188,7 +139,7 @@ export default function App() {
     streak: getStreak(state)
   }
 
-  const progressDays = Array.from({ length: 5 }, (_, i) => {
+  const progressDays = Array.from({ length: planWithCustom.length }, (_, i) => {
     const dk = getDayKey(weekKey, i)
     return state[dk] && state[dk].done ? 1 : 0
   }).reduce((a, b) => a + b, 0)
